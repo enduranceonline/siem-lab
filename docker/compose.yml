@@ -3,9 +3,9 @@ services:
     image: postgres:16
     container_name: siem-db
     environment:
-      POSTGRES_DB: siem
-      POSTGRES_USER: siem
-      POSTGRES_PASSWORD: siemlab123
+      POSTGRES_DB: ${POSTGRES_DB:-siem}
+      POSTGRES_USER: ${POSTGRES_USER:-siem}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-siemlab123}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     volumes:
       - siem_db:/var/lib/postgresql/data
@@ -13,7 +13,7 @@ services:
       - siem-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U siem -d siem"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-siem} -d ${POSTGRES_DB:-siem}"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -39,8 +39,8 @@ services:
     volumes:
       - ../backend:/app
     environment:
-      DATABASE_URL: postgresql+psycopg://siem:siemlab123@db:5432/siem
-      APP_VERSION: "0.1.0"
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://siem:siemlab123@db:5432/siem}
+      APP_VERSION: ${APP_VERSION:-0.1.0}
       GIT_SHA: "${GIT_SHA:-unknown}"
       BUILD_TIME: "${BUILD_TIME:-unknown}"
     networks:
