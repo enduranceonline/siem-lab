@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SIEM Lab — Detalle de alerta</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container">
+      <div class="brand">
+        <span class="logo">SIEM</span>
+        <div>
+          <h1>Detalle de alerta</h1>
+          <p class="muted">Contexto y gestión de estado</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn" href="./index.html">← Volver</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="card-header row">
+        <div>
+          <h2 id="title">Alerta #—</h2>
+          <p id="subtitle" class="muted">—</p>
+        </div>
+
+        <div class="actions">
+          <button id="btnAck" class="btn primary" type="button">ACK</button>
+          <button id="btnClose" class="btn danger" type="button">CLOSE</button>
+          <button id="btnReopen" class="btn" type="button">REOPEN</button>
+        </div>
+      </div>
+
+      <div id="errorBox" class="alert error hidden"></div>
+      <div id="infoBox" class="alert info hidden"></div>
+
+      <div class="grid">
+        <div class="kv">
+          <div class="k">id</div><div class="v" id="v_id">—</div>
+          <div class="k">status</div><div class="v"><span id="v_status" class="badge">—</span></div>
+          <div class="k">group_key</div><div class="v" id="v_group_key">—</div>
+          <div class="k">rule_id</div><div class="v" id="v_rule_id">—</div>
+          <div class="k">event_id</div><div class="v" id="v_event_id">—</div>
+          <div class="k">created_at</div><div class="v" id="v_created_at">—</div>
+          <div class="k">updated_at</div><div class="v" id="v_updated_at">—</div>
+        </div>
+
+        <div class="panel">
+          <h3>Título</h3>
+          <p id="v_title" class="mono">—</p>
+
+          <h3>Notas</h3>
+          <ul class="muted">
+            <li>Este MVP gestiona solo el estado (<code>open|ack|closed</code>).</li>
+            <li>Los eventos asociados (detalle del evento) no están en <code>AlertOut</code>; se integrarían usando <code>/events</code> en una iteración posterior.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./assets/app.js"></script>
+  <script src="./assets/alert_detail.js"></script>
+</body>
+</html>

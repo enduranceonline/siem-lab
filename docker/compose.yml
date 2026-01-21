@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16
+    container_name: siem-db
+    environment:
+      POSTGRES_DB: siem
+      POSTGRES_USER: siem
+      POSTGRES_PASSWORD: siemlab123
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    volumes:
+      - siem_db:/var/lib/postgresql/data
+    networks:
+      - siem-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U siem -d siem"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  adminer:
+    image: adminer:4
+    container_name: siem-adminer
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - siem-net
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: siem-api
+    working_dir: /app
+    volumes:
+      - ../backend:/app
+    environment:
+      DATABASE_URL: postgresql+psycopg://siem:siemlab123@db:5432/siem
+      APP_VERSION: "0.1.0"
+      GIT_SHA: "${GIT_SHA:-unknown}"
+      BUILD_TIME: "${BUILD_TIME:-unknown}"
+    networks:
+      - siem-net
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+volumes:
+  siem_db:
+
+networks:
+  siem-net:
+    name: siem-net

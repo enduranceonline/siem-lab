@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SIEM Lab — Alertas</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container">
+      <div class="brand">
+        <span class="logo">SIEM</span>
+        <div>
+          <h1>Alertas</h1>
+          <p class="muted">Vista principal — listado, filtros y paginación</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnRefresh" class="btn">Actualizar</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="card-header">
+        <h2>Filtros</h2>
+        <p class="muted">Se aplican contra <code>/alerts</code></p>
+      </div>
+
+      <form id="filtersForm" class="filters">
+        <div class="field">
+          <label for="status">Estado</label>
+          <select id="status" name="status">
+            <option value="">(todos)</option>
+            <option value="open">open</option>
+            <option value="ack">ack</option>
+            <option value="closed">closed</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="group_key">group_key (host)</label>
+          <input id="group_key" name="group_key" type="text" placeholder="ej: web-01" />
+        </div>
+
+        <div class="field">
+          <label for="limit">Límite</label>
+          <select id="limit" name="limit">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+
+        <div class="field buttons">
+          <button class="btn primary" type="submit">Aplicar</button>
+          <button id="btnClear" class="btn" type="button">Limpiar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="card-header row">
+        <div>
+          <h2>Listado</h2>
+          <p id="resultMeta" class="muted">—</p>
+        </div>
+
+        <div class="pager">
+          <button id="btnPrev" class="btn" type="button">← Prev</button>
+          <button id="btnNext" class="btn" type="button">Next →</button>
+        </div>
+      </div>
+
+      <div id="errorBox" class="alert error hidden"></div>
+      <div id="infoBox" class="alert info hidden"></div>
+
+      <div class="table-wrap">
+        <table class="table" aria-label="Tabla de alertas">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Estado</th>
+              <th>Severidad</th>
+              <th>group_key</th>
+              <th>Título</th>
+              <th>rule_id</th>
+              <th>event_id</th>
+              <th>created_at</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="alertsTbody">
+            <tr><td colspan="9" class="muted">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-footer">
+        <small class="muted">
+          Nota: “Severidad” no existe en <code>AlertOut</code>; se deja como placeholder (“—”) para evitar inventar datos.
+        </small>
+      </div>
+    </section>
+  </main>
+
+  <script src="./assets/app.js"></script>
+  <script src="./assets/alerts.js"></script>
+</body>
+</html>
