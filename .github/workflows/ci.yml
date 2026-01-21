@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create docker/.env
+        run: |
+          cat > docker/.env <<'EOF'
+          POSTGRES_DB=siem
+          POSTGRES_USER=siem
+          POSTGRES_PASSWORD=ci_password
+          DATABASE_URL=postgresql+psycopg://siem:ci_password@db:5432/siem
+          API_PORT=8000
+          ADMINER_PORT=8080
+          APP_VERSION=0.1.0
+          GIT_SHA=ci
+          BUILD_TIME=ci
+          EOF
+
+      - name: Build + up
+        run: |
+          docker compose -f docker/compose.yml up -d --build
+          docker compose -f docker/compose.yml ps
+
+      - name: Run tests
+        run: |
+          docker exec -i siem-api pytest -q
+
+      - name: Down
+        if: always()
+        run: docker compose -f docker/compose.yml down -v
