@@ -1,3 +1,6 @@
+cd ~/siem-lab
+
+cat > README.md <<'EOF'
 # SIEM Lab MVP
 
 Mini SIEM educativo desarrollado como proyecto de DAM con enfoque Blue Team.
@@ -86,7 +89,8 @@ Consulta mediante API o frontend
 siem-lab/
 ├── backend/
 │   ├── app/
-│   │   ├── api/routes/
+│   │   ├── api/
+│   │   │   └── routes/
 │   │   ├── db/
 │   │   ├── models/
 │   │   └── schemas/
@@ -99,6 +103,10 @@ siem-lab/
 │   ├── index.html
 │   ├── alert.html
 │   └── assets/
+│       ├── alerts.js
+│       ├── alert_detail.js
+│       ├── app.js
+│       └── styles.css
 │
 ├── docker/
 │   ├── compose.yml
@@ -143,7 +151,221 @@ siem-adminer   Up
 
 ---
 
-## 7. URLs principales
+## 7. Reproducción desde cero
+
+Para reproducir el proyecto en otro equipo desde cero, es necesario tener instalado:
+
+- Git
+- Docker
+- Docker Compose
+- Navegador web
+- Python 3, solo si se quiere servir el frontend con `http.server`
+
+### 7.1. Clonar el repositorio
+
+```bash
+git clone https://github.com/enduranceonline/siem-lab.git
+cd siem-lab
+```
+
+### 7.2. Crear archivos de entorno
+
+Los archivos `.env` reales no se suben al repositorio por seguridad.
+
+Para crear la configuración local a partir del ejemplo:
+
+```bash
+cp .env.example .env
+cp .env.example docker/.env
+```
+
+Los valores por defecto para laboratorio son:
+
+```text
+POSTGRES_DB=siem
+POSTGRES_USER=siem
+POSTGRES_PASSWORD=change_me
+DATABASE_URL=postgresql+psycopg://siem:change_me@db:5432/siem
+
+API_PORT=8000
+ADMINER_PORT=8080
+
+APP_VERSION=0.1.0
+GIT_SHA=unknown
+BUILD_TIME=unknown
+```
+
+### 7.3. Levantar el entorno
+
+Desde la raíz del proyecto:
+
+```bash
+docker compose -f docker/compose.yml up -d --build
+```
+
+También puede hacerse desde la carpeta `docker`:
+
+```bash
+cd docker
+docker compose up -d --build
+```
+
+### 7.4. Comprobar contenedores
+
+Desde la raíz del proyecto:
+
+```bash
+docker compose -f docker/compose.yml ps
+```
+
+Si se está dentro de la carpeta `docker`:
+
+```bash
+docker compose ps
+```
+
+Deben aparecer los servicios:
+
+```text
+siem-db
+siem-api
+siem-adminer
+```
+
+### 7.5. Ejecutar migraciones
+
+Si la base de datos está vacía, ejecutar las migraciones de Alembic:
+
+```bash
+docker compose -f docker/compose.yml exec api alembic upgrade head
+```
+
+Si se está dentro de la carpeta `docker`:
+
+```bash
+docker compose exec api alembic upgrade head
+```
+
+### 7.6. Comprobar la API
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Respuesta esperada:
+
+```json
+{
+  "status": "ok",
+  "db": "ok"
+}
+```
+
+También se puede abrir Swagger:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### 7.7. Crear una regla de demo
+
+```bash
+curl -X POST http://127.0.0.1:8000/rules \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "SSH failed login demo",
+    "enabled": true,
+    "source": "ssh",
+    "severity_min": 5,
+    "contains": "failed",
+    "meta_match": null,
+    "throttle_seconds": 60,
+    "threshold_count": null,
+    "threshold_seconds": null
+  }'
+```
+
+### 7.8. Enviar un evento de demo
+
+```bash
+HOST="demo-$(date +%s)"
+
+curl -X POST http://127.0.0.1:8000/ingest \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"source\": \"ssh\",
+    \"severity\": 7,
+    \"message\": \"failed password for invalid user demo\",
+    \"meta\": {
+      \"host\": \"$HOST\"
+    }
+  }"
+```
+
+### 7.9. Consultar alertas generadas
+
+```bash
+curl -s "http://127.0.0.1:8000/alerts/ui?limit=5" | python3 -m json.tool
+```
+
+Si todo funciona correctamente, aparecerá una alerta generada automáticamente a partir del evento enviado por `/ingest`.
+
+### 7.10. Servir el frontend
+
+En otra terminal:
+
+```bash
+cd siem-lab
+python3 -m http.server 5173 -d frontend
+```
+
+Abrir en el navegador:
+
+```text
+http://127.0.0.1:5173/index.html
+```
+
+### 7.11. Acceder a Adminer
+
+```text
+http://127.0.0.1:8080
+```
+
+Credenciales:
+
+```text
+Sistema: PostgreSQL
+Servidor: db
+Usuario: siem
+Contraseña: change_me
+Base de datos: siem
+```
+
+### 7.12. Ejecutar tests
+
+Desde la raíz del proyecto:
+
+```bash
+docker compose -f docker/compose.yml exec api python -m pytest
+```
+
+Si se está dentro de la carpeta `docker`:
+
+```bash
+docker compose exec api python -m pytest
+```
+
+Resultado esperado:
+
+```text
+4 passed
+```
+
+Con estos pasos, el proyecto puede reproducirse desde cero en otro equipo sin depender de archivos locales no incluidos en el repositorio.
+
+---
+
+## 8. URLs principales
 
 Documentación interactiva de la API con Swagger:
 
@@ -165,7 +387,7 @@ http://127.0.0.1:5173/index.html
 
 ---
 
-## 8. Credenciales de base de datos
+## 9. Credenciales de base de datos
 
 Credenciales usadas en el entorno de desarrollo:
 
@@ -181,7 +403,7 @@ Estas credenciales están pensadas únicamente para un entorno local de laborato
 
 ---
 
-## 9. Endpoints principales
+## 10. Endpoints principales
 
 ### Healthcheck
 
@@ -281,7 +503,7 @@ Devuelve métricas básicas del sistema:
 
 ---
 
-## 10. Funcionamiento del motor de reglas
+## 11. Funcionamiento del motor de reglas
 
 El motor de reglas se ejecuta cuando se recibe un evento mediante:
 
@@ -316,9 +538,41 @@ Además, el sistema usa `meta.host` como `group_key` para agrupar alertas por ho
 
 ---
 
-## 11. Ejemplo de ingesta de evento
+## 12. Ejemplo de regla
 
-Ejemplo de evento compatible con una regla de SSH:
+Ejemplo de regla para detectar intentos fallidos de autenticación SSH:
+
+```bash
+curl -X POST http://127.0.0.1:8000/rules \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "SSH failed login",
+    "enabled": true,
+    "source": "ssh",
+    "severity_min": 5,
+    "contains": "failed",
+    "meta_match": null,
+    "throttle_seconds": 60,
+    "threshold_count": null,
+    "threshold_seconds": null
+  }'
+```
+
+Esta regla indica que cualquier evento con:
+
+```text
+source = ssh
+severity >= 5
+message contiene "failed"
+```
+
+puede generar una alerta.
+
+---
+
+## 13. Ejemplo de ingesta de evento
+
+Ejemplo de evento compatible con la regla anterior:
 
 ```bash
 HOST="demo-$(date +%s)"
@@ -339,7 +593,7 @@ Si existe una regla activa compatible, el sistema genera una alerta automáticam
 
 ---
 
-## 12. Consulta de alertas
+## 14. Consulta de alertas
 
 Consulta de las últimas alertas enriquecidas:
 
@@ -347,17 +601,54 @@ Consulta de las últimas alertas enriquecidas:
 curl -s "http://127.0.0.1:8000/alerts/ui?limit=5" | python3 -m json.tool
 ```
 
-Filtros disponibles:
+Ejemplo de alerta generada:
 
-```bash
-curl -s "http://127.0.0.1:8000/alerts/ui?status=ack" | python3 -m json.tool
-curl -s "http://127.0.0.1:8000/alerts/ui?severity_min=7" | python3 -m json.tool
-curl -s "http://127.0.0.1:8000/alerts/ui?q=failed" | python3 -m json.tool
+```json
+{
+  "id": 6,
+  "rule_id": 7,
+  "event_id": 17,
+  "title": "Rule matched: test_rule_ssh",
+  "group_key": "demo-1778929393",
+  "status": "ack",
+  "rule_name": "test_rule_ssh",
+  "event_source": "ssh",
+  "event_severity": 7,
+  "event_message": "failed password for invalid user demo"
+}
 ```
 
 ---
 
-## 13. Actualización de estado de alerta
+## 15. Filtros de alertas
+
+Filtrar por estado:
+
+```bash
+curl -s "http://127.0.0.1:8000/alerts/ui?status=ack" | python3 -m json.tool
+```
+
+Filtrar por severidad mínima:
+
+```bash
+curl -s "http://127.0.0.1:8000/alerts/ui?severity_min=7" | python3 -m json.tool
+```
+
+Buscar por texto:
+
+```bash
+curl -s "http://127.0.0.1:8000/alerts/ui?q=failed" | python3 -m json.tool
+```
+
+Limitar resultados:
+
+```bash
+curl -s "http://127.0.0.1:8000/alerts/ui?limit=5" | python3 -m json.tool
+```
+
+---
+
+## 16. Actualización de estado de una alerta
 
 El sistema permite cambiar el estado de una alerta mediante:
 
@@ -383,9 +674,11 @@ ack
 closed
 ```
 
+Esto permite simular una gestión básica del ciclo de vida de una alerta.
+
 ---
 
-## 14. Frontend
+## 17. Frontend
 
 El frontend se encuentra en la carpeta:
 
@@ -416,7 +709,7 @@ La interfaz permite:
 
 ---
 
-## 15. Adminer
+## 18. Adminer
 
 Adminer permite consultar visualmente la base de datos PostgreSQL.
 
@@ -439,7 +732,7 @@ Estas tablas permiten comprobar que los eventos, reglas y alertas quedan persist
 
 ---
 
-## 16. Pruebas automatizadas
+## 19. Pruebas automatizadas
 
 El proyecto incluye pruebas automatizadas con `pytest`.
 
@@ -456,9 +749,11 @@ Resultado validado:
 4 passed
 ```
 
+Las pruebas verifican el funcionamiento de endpoints principales como `/health` y la consulta de alertas orientada a la interfaz.
+
 ---
 
-## 17. Validación funcional realizada
+## 20. Validación funcional realizada
 
 Durante la validación del proyecto se comprobó:
 
@@ -482,7 +777,7 @@ Durante la validación del proyecto se comprobó:
 
 ---
 
-## 18. Limitaciones
+## 21. Limitaciones
 
 Este proyecto es un MVP educativo. Sus principales limitaciones son:
 
@@ -497,7 +792,7 @@ Este proyecto es un MVP educativo. Sus principales limitaciones son:
 
 ---
 
-## 19. Futuras mejoras
+## 22. Futuras mejoras
 
 Posibles ampliaciones del proyecto:
 
@@ -516,8 +811,9 @@ Posibles ampliaciones del proyecto:
 
 ---
 
-## 20. Conclusión
+## 23. Conclusión
 
 SIEM Lab demuestra el funcionamiento básico de un sistema de monitorización de seguridad: recepción de eventos, almacenamiento, evaluación mediante reglas, generación automática de alertas y consulta posterior.
 
 Aunque se trata de un MVP académico, el proyecto permite comprender de forma práctica conceptos fundamentales del Blue Team y sirve como base para futuras ampliaciones hacia un laboratorio de ciberseguridad más completo.
+EOF
