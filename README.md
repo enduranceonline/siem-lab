@@ -1,6 +1,3 @@
-cd ~/siem-lab
-
-cat > README.md <<'EOF'
 # SIEM Lab MVP
 
 Mini SIEM educativo desarrollado como proyecto de DAM con enfoque Blue Team.
@@ -816,4 +813,3 @@ Posibles ampliaciones del proyecto:
 SIEM Lab demuestra el funcionamiento básico de un sistema de monitorización de seguridad: recepción de eventos, almacenamiento, evaluación mediante reglas, generación automática de alertas y consulta posterior.
 
 Aunque se trata de un MVP académico, el proyecto permite comprender de forma práctica conceptos fundamentales del Blue Team y sirve como base para futuras ampliaciones hacia un laboratorio de ciberseguridad más completo.
-EOF
