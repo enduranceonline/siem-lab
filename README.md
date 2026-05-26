@@ -1,115 +1,118 @@
 # SIEM Lab MVP
 
-Mini SIEM educativo desarrollado como proyecto de DAM con enfoque Blue Team.
+## Descripción general
 
-El objetivo del proyecto es simular el flujo básico de un sistema SIEM: ingesta de eventos, evaluación mediante reglas, generación automática de alertas, consulta de alertas y visualización básica mediante frontend.
+**SIEM Lab MVP** es un laboratorio académico orientado a simular el funcionamiento básico de un sistema SIEM (*Security Information and Event Management*).
 
----
+El objetivo principal del proyecto es recibir eventos de seguridad, almacenarlos en una base de datos, evaluarlos mediante reglas configurables y generar alertas cuando se cumplen determinadas condiciones.
 
-## 1. Descripción general
+El proyecto se ha desarrollado como una aplicación web sencilla, modular y contenerizada, utilizando tecnologías habituales en entornos backend y de ciberseguridad defensiva.
 
-**SIEM Lab** es una aplicación web compuesta por un backend desarrollado con FastAPI, una base de datos PostgreSQL, un frontend sencillo en HTML/CSS/JavaScript y un entorno de ejecución basado en Docker Compose.
+Este laboratorio está enfocado al aprendizaje de conceptos relacionados con:
 
-El sistema permite recibir eventos de seguridad simulados, almacenarlos en base de datos, evaluarlos mediante reglas activas y generar alertas cuando se cumplen determinadas condiciones.
-
-El proyecto está planteado como un **MVP académico**, no como una herramienta SIEM de producción. Su finalidad principal es demostrar de forma práctica conceptos básicos relacionados con la monitorización de seguridad, la ingesta de logs, la correlación sencilla mediante reglas y la gestión de alertas.
-
----
-
-## 2. Objetivos del proyecto
-
-Los objetivos principales del proyecto son:
-
-- Diseñar una arquitectura básica de tipo SIEM.
-- Crear una API REST para gestionar eventos, reglas y alertas.
-- Almacenar la información en una base de datos PostgreSQL.
-- Implementar un motor de reglas sencillo.
-- Generar alertas automáticamente a partir de eventos ingestados.
-- Permitir la consulta y filtrado de alertas.
-- Permitir el cambio de estado de una alerta.
-- Crear un frontend básico para visualizar las alertas.
-- Contenerizar el entorno mediante Docker Compose.
-- Validar el funcionamiento mediante pruebas automatizadas.
+- Ingesta de eventos de seguridad.
+- Persistencia de datos en PostgreSQL.
+- Exposición de una API REST mediante FastAPI.
+- Validación de datos con Pydantic.
+- Modelado de datos con SQLAlchemy.
+- Gestión de migraciones con Alembic.
+- Generación y consulta de alertas.
+- Visualización básica mediante frontend web.
+- Contenerización del entorno mediante Docker Compose.
 
 ---
 
-## 3. Stack tecnológico
+## Objetivo del proyecto
 
-El proyecto utiliza las siguientes tecnologías:
-
-- Python 3.12
-- FastAPI
-- Uvicorn
-- PostgreSQL 16
-- SQLAlchemy
-- Alembic
-- Docker Compose
-- Adminer
-- HTML
-- CSS
-- JavaScript
-- Pytest
-
----
-
-## 4. Arquitectura del sistema
-
-El entorno se levanta mediante Docker Compose e incluye tres servicios principales:
+El objetivo del proyecto es construir un MVP funcional de un laboratorio SIEM que permita demostrar el flujo básico de trabajo de una herramienta de monitorización defensiva:
 
 ```text
-siem-db       → Base de datos PostgreSQL
-siem-api      → API REST desarrollada con FastAPI
-siem-adminer  → Interfaz web para consultar la base de datos
-```
-
-El flujo principal del sistema es el siguiente:
-
-```text
-Evento/log simulado
+Evento de seguridad
         ↓
-POST /ingest
+API de ingesta
+        ↓
+Validación del evento
         ↓
 Almacenamiento en PostgreSQL
         ↓
-Evaluación mediante reglas activas
+Evaluación mediante reglas
         ↓
-Generación automática de alerta
+Generación de alertas
         ↓
-Consulta mediante API o frontend
-```
+Consulta desde API o frontend
+````
+
+El sistema no pretende sustituir a una solución SIEM real, sino servir como laboratorio didáctico para comprender cómo se conectan los principales componentes de una arquitectura de este tipo.
 
 ---
 
-## 5. Estructura del proyecto
+## Tecnologías utilizadas
+
+### Backend
+
+* Python 3.12
+* FastAPI
+* Uvicorn
+* SQLAlchemy
+* Pydantic
+* Psycopg
+* Alembic
+* Pytest
+* HTTPX
+
+### Base de datos
+
+* PostgreSQL 16
+
+### Frontend
+
+* HTML
+* CSS
+* JavaScript
+
+### Contenerización
+
+* Docker
+* Docker Compose
+
+### Herramientas auxiliares
+
+* Adminer
+* Git
+* GitHub Actions
+
+---
+
+## Estructura del proyecto
 
 ```text
 siem-lab/
 ├── backend/
+│   ├── alembic/
+│   │   └── versions/
 │   ├── app/
 │   │   ├── api/
 │   │   │   └── routes/
 │   │   ├── db/
 │   │   ├── models/
-│   │   └── schemas/
+│   │   ├── schemas/
+│   │   └── main.py
 │   ├── tests/
 │   ├── Dockerfile
 │   ├── requirements.txt
+│   ├── alembic.ini
 │   └── pytest.ini
-│
 ├── frontend/
+│   ├── assets/
 │   ├── index.html
-│   ├── alert.html
-│   └── assets/
-│       ├── alerts.js
-│       ├── alert_detail.js
-│       ├── app.js
-│       └── styles.css
-│
+│   └── alert.html
 ├── docker/
-│   ├── compose.yml
-│   └── .env
-│
-├── .env
+│   └── compose.yml
+├── configs/
+├── data/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -117,68 +120,152 @@ siem-lab/
 
 ---
 
-## 6. Puesta en marcha
+## Componentes principales
 
-Desde la raíz del proyecto:
+### Backend FastAPI
 
-```bash
-docker compose -f docker/compose.yml up -d --build
-```
+El backend es el núcleo del laboratorio. Expone los endpoints de la API, recibe eventos, consulta la base de datos, evalúa reglas y devuelve respuestas en formato JSON.
 
-También puede ejecutarse desde la carpeta `docker`:
-
-```bash
-cd docker
-docker compose up -d --build
-```
-
-Para comprobar el estado de los contenedores:
-
-```bash
-docker compose ps
-```
-
-Servicios esperados:
+El punto de entrada principal es:
 
 ```text
-siem-db        Up / Healthy
-siem-api       Up
-siem-adminer   Up
+backend/app/main.py
+```
+
+Desde este archivo se inicializa la aplicación FastAPI y se cargan las rutas principales del sistema.
+
+---
+
+### Base de datos PostgreSQL
+
+La base de datos almacena la información principal del laboratorio:
+
+* Eventos recibidos.
+* Reglas de detección.
+* Alertas generadas.
+
+Los modelos se encuentran en:
+
+```text
+backend/app/models/
+```
+
+La conexión y sesiones de base de datos se gestionan desde:
+
+```text
+backend/app/db/
 ```
 
 ---
 
-## 7. Reproducción desde cero
+### API de ingesta
 
-Para reproducir el proyecto en otro equipo desde cero, es necesario tener instalado:
+La API de ingesta permite introducir eventos de seguridad en el sistema. Estos eventos son validados, almacenados y utilizados posteriormente por el motor de reglas.
 
-- Git
-- Docker
-- Docker Compose
-- Navegador web
-- Python 3, solo si se quiere servir el frontend con `http.server`
-
-### 7.1. Clonar el repositorio
-
-```bash
-git clone https://github.com/enduranceonline/siem-lab.git
-cd siem-lab
-```
-
-### 7.2. Crear archivos de entorno
-
-Los archivos `.env` reales no se suben al repositorio por seguridad.
-
-Para crear la configuración local a partir del ejemplo:
-
-```bash
-cp .env.example .env
-cp .env.example docker/.env
-```
-
-Los valores por defecto para laboratorio son:
+Las rutas relacionadas se encuentran en:
 
 ```text
+backend/app/api/routes/ingest.py
+backend/app/api/routes/events.py
+```
+
+---
+
+### Motor de reglas
+
+El motor de reglas permite definir condiciones para detectar eventos relevantes. Cuando un evento cumple una regla, el sistema puede generar una alerta.
+
+Las rutas y modelos relacionados se encuentran en:
+
+```text
+backend/app/api/routes/rules.py
+backend/app/models/rule.py
+backend/app/schemas/rule.py
+```
+
+---
+
+### Gestión de alertas
+
+La gestión de alertas permite consultar, filtrar y actualizar las alertas generadas por el sistema.
+
+Los archivos relacionados son:
+
+```text
+backend/app/api/routes/alerts.py
+backend/app/api/routes/metrics.py
+backend/app/models/alert.py
+backend/app/schemas/alert.py
+```
+
+---
+
+### Frontend
+
+El frontend permite visualizar la información del laboratorio desde el navegador sin depender únicamente de Swagger, curl o Adminer.
+
+Los archivos principales son:
+
+```text
+frontend/index.html
+frontend/alert.html
+frontend/assets/app.js
+frontend/assets/alerts.js
+frontend/assets/alert_detail.js
+frontend/assets/styles.css
+```
+
+---
+
+### Docker Compose
+
+El entorno se levanta mediante Docker Compose. El archivo principal es:
+
+```text
+docker/compose.yml
+```
+
+Este archivo define tres servicios principales:
+
+```text
+db       → PostgreSQL
+adminer  → Interfaz web para consultar la base de datos
+api      → Backend FastAPI
+```
+
+---
+
+## Requisitos previos
+
+Para ejecutar el proyecto se recomienda tener instalado:
+
+* Docker
+* Docker Compose
+* Git
+
+Opcionalmente, para ejecutar el backend fuera de Docker:
+
+* Python 3.12
+* pip
+* entorno virtual de Python
+
+---
+
+## Variables de entorno
+
+El proyecto utiliza variables de entorno para configurar la base de datos, los puertos y la información de versión.
+
+Se incluye el archivo:
+
+```text
+.env.example
+```
+
+Este archivo sirve como plantilla segura.
+
+Contenido esperado:
+
+```env
 POSTGRES_DB=siem
 POSTGRES_USER=siem
 POSTGRES_PASSWORD=change_me
@@ -192,490 +279,68 @@ GIT_SHA=unknown
 BUILD_TIME=unknown
 ```
 
-### 7.3. Levantar el entorno
-
-Desde la raíz del proyecto:
+Para preparar el entorno local:
 
 ```bash
-docker compose -f docker/compose.yml up -d --build
+cp .env.example .env
+cp .env.example docker/.env
 ```
 
-También puede hacerse desde la carpeta `docker`:
-
-```bash
-cd docker
-docker compose up -d --build
-```
-
-### 7.4. Comprobar contenedores
-
-Desde la raíz del proyecto:
-
-```bash
-docker compose -f docker/compose.yml ps
-```
-
-Si se está dentro de la carpeta `docker`:
-
-```bash
-docker compose ps
-```
-
-Deben aparecer los servicios:
-
-```text
-siem-db
-siem-api
-siem-adminer
-```
-
-### 7.5. Ejecutar migraciones
-
-Si la base de datos está vacía, ejecutar las migraciones de Alembic:
-
-```bash
-docker compose -f docker/compose.yml exec api alembic upgrade head
-```
-
-Si se está dentro de la carpeta `docker`:
-
-```bash
-docker compose exec api alembic upgrade head
-```
-
-### 7.6. Comprobar la API
-
-```bash
-curl http://127.0.0.1:8000/health
-```
-
-Respuesta esperada:
-
-```json
-{
-  "status": "ok",
-  "db": "ok"
-}
-```
-
-También se puede abrir Swagger:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-### 7.7. Crear una regla de demo
-
-```bash
-curl -X POST http://127.0.0.1:8000/rules \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "SSH failed login demo",
-    "enabled": true,
-    "source": "ssh",
-    "severity_min": 5,
-    "contains": "failed",
-    "meta_match": null,
-    "throttle_seconds": 60,
-    "threshold_count": null,
-    "threshold_seconds": null
-  }'
-```
-
-### 7.8. Enviar un evento de demo
-
-```bash
-HOST="demo-$(date +%s)"
-
-curl -X POST http://127.0.0.1:8000/ingest \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"source\": \"ssh\",
-    \"severity\": 7,
-    \"message\": \"failed password for invalid user demo\",
-    \"meta\": {
-      \"host\": \"$HOST\"
-    }
-  }"
-```
-
-### 7.9. Consultar alertas generadas
-
-```bash
-curl -s "http://127.0.0.1:8000/alerts/ui?limit=5" | python3 -m json.tool
-```
-
-Si todo funciona correctamente, aparecerá una alerta generada automáticamente a partir del evento enviado por `/ingest`.
-
-### 7.10. Servir el frontend
-
-En otra terminal:
-
-```bash
-cd siem-lab
-python3 -m http.server 5173 -d frontend
-```
-
-Abrir en el navegador:
-
-```text
-http://127.0.0.1:5173/index.html
-```
-
-### 7.11. Acceder a Adminer
-
-```text
-http://127.0.0.1:8080
-```
-
-Credenciales:
-
-```text
-Sistema: PostgreSQL
-Servidor: db
-Usuario: siem
-Contraseña: change_me
-Base de datos: siem
-```
-
-### 7.12. Ejecutar tests
-
-Desde la raíz del proyecto:
-
-```bash
-docker compose -f docker/compose.yml exec api python -m pytest
-```
-
-Si se está dentro de la carpeta `docker`:
-
-```bash
-docker compose exec api python -m pytest
-```
-
-Resultado esperado:
-
-```text
-4 passed
-```
-
-Con estos pasos, el proyecto puede reproducirse desde cero en otro equipo sin depender de archivos locales no incluidos en el repositorio.
+Después se pueden modificar los valores si es necesario.
 
 ---
 
-## 8. URLs principales
+## Ejecución con Docker Compose
 
-Documentación interactiva de la API con Swagger:
+Desde la raíz del proyecto:
+
+```bash
+cd siem-lab
+```
+
+Levantar el laboratorio:
+
+```bash
+docker compose --env-file docker/.env -f docker/compose.yml up -d
+```
+
+Comprobar los contenedores activos:
+
+```bash
+docker ps
+```
+
+Servicios esperados:
 
 ```text
-http://127.0.0.1:8000/docs
+siem-db       → PostgreSQL
+siem-adminer  → Adminer
+siem-api      → API FastAPI
+```
+
+---
+
+## Acceso a la aplicación
+
+API FastAPI:
+
+```text
+http://localhost:8000
+```
+
+Documentación Swagger:
+
+```text
+http://localhost:8000/docs
 ```
 
 Adminer:
 
 ```text
-http://127.0.0.1:8080
+http://localhost:8080
 ```
 
 Frontend:
-
-```text
-http://127.0.0.1:5173/index.html
-```
-
----
-
-## 9. Credenciales de base de datos
-
-Credenciales usadas en el entorno de desarrollo:
-
-```text
-Sistema: PostgreSQL
-Servidor: db
-Usuario: siem
-Contraseña: change_me
-Base de datos: siem
-```
-
-Estas credenciales están pensadas únicamente para un entorno local de laboratorio.
-
----
-
-## 10. Endpoints principales
-
-### Healthcheck
-
-```http
-GET /health
-```
-
-Comprueba que la API y la conexión con PostgreSQL funcionan correctamente.
-
-Ejemplo de respuesta:
-
-```json
-{
-  "status": "ok",
-  "db": "ok"
-}
-```
-
-### Información de la aplicación
-
-```http
-GET /info
-```
-
-Devuelve información básica de la aplicación, como nombre, versión, commit y hora actual en UTC.
-
-### Eventos
-
-```http
-POST /events
-GET /events
-```
-
-Permite crear y listar eventos simples.
-
-Este endpoint almacena eventos, pero no es el flujo principal de generación de alertas.
-
-### Ingesta
-
-```http
-POST /ingest
-```
-
-Es el endpoint principal del sistema.
-
-Recibe un evento, lo almacena en la base de datos y ejecuta el motor de reglas. Si el evento cumple las condiciones de una regla activa, se genera una alerta automáticamente.
-
-### Reglas
-
-```http
-POST /rules
-GET /rules
-```
-
-Permite crear y listar reglas de detección.
-
-Una regla puede contener condiciones como:
-
-- Nombre.
-- Estado activo/inactivo.
-- Source.
-- Severidad mínima.
-- Texto contenido en el mensaje.
-- Coincidencias en metadatos.
-- Throttle.
-- Threshold.
-
-### Alertas
-
-```http
-GET /alerts
-GET /alerts/ui
-GET /alerts/ui/count
-GET /alerts/{alert_id}
-GET /alerts/{alert_id}/ui
-PATCH /alerts/{alert_id}
-```
-
-Permite consultar alertas, ver información enriquecida y actualizar su estado.
-
-El endpoint `/alerts/ui` devuelve información enriquecida combinando datos de alertas, reglas y eventos.
-
-### Métricas
-
-```http
-GET /metrics
-```
-
-Devuelve métricas básicas del sistema:
-
-- Total de eventos.
-- Total de reglas.
-- Reglas activas.
-- Total de alertas.
-- Alertas por estado.
-- Alertas agrupadas por `group_key`.
-
----
-
-## 11. Funcionamiento del motor de reglas
-
-El motor de reglas se ejecuta cuando se recibe un evento mediante:
-
-```http
-POST /ingest
-```
-
-El proceso interno es:
-
-```text
-1. La API recibe un evento.
-2. El evento se guarda en PostgreSQL.
-3. Se consultan las reglas activas.
-4. Cada regla se compara con el evento recibido.
-5. Si el evento cumple las condiciones de una regla, se genera una alerta.
-6. La alerta queda asociada al evento y a la regla correspondiente.
-```
-
-Las condiciones que puede evaluar una regla son:
-
-```text
-source
-severity_min
-contains
-meta_match
-threshold_count
-threshold_seconds
-throttle_seconds
-```
-
-Además, el sistema usa `meta.host` como `group_key` para agrupar alertas por host o equipo origen.
-
----
-
-## 12. Ejemplo de regla
-
-Ejemplo de regla para detectar intentos fallidos de autenticación SSH:
-
-```bash
-curl -X POST http://127.0.0.1:8000/rules \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "SSH failed login",
-    "enabled": true,
-    "source": "ssh",
-    "severity_min": 5,
-    "contains": "failed",
-    "meta_match": null,
-    "throttle_seconds": 60,
-    "threshold_count": null,
-    "threshold_seconds": null
-  }'
-```
-
-Esta regla indica que cualquier evento con:
-
-```text
-source = ssh
-severity >= 5
-message contiene "failed"
-```
-
-puede generar una alerta.
-
----
-
-## 13. Ejemplo de ingesta de evento
-
-Ejemplo de evento compatible con la regla anterior:
-
-```bash
-HOST="demo-$(date +%s)"
-
-curl -X POST http://127.0.0.1:8000/ingest \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"source\": \"ssh\",
-    \"severity\": 7,
-    \"message\": \"failed password for invalid user demo\",
-    \"meta\": {
-      \"host\": \"$HOST\"
-    }
-  }"
-```
-
-Si existe una regla activa compatible, el sistema genera una alerta automáticamente.
-
----
-
-## 14. Consulta de alertas
-
-Consulta de las últimas alertas enriquecidas:
-
-```bash
-curl -s "http://127.0.0.1:8000/alerts/ui?limit=5" | python3 -m json.tool
-```
-
-Ejemplo de alerta generada:
-
-```json
-{
-  "id": 6,
-  "rule_id": 7,
-  "event_id": 17,
-  "title": "Rule matched: test_rule_ssh",
-  "group_key": "demo-1778929393",
-  "status": "ack",
-  "rule_name": "test_rule_ssh",
-  "event_source": "ssh",
-  "event_severity": 7,
-  "event_message": "failed password for invalid user demo"
-}
-```
-
----
-
-## 15. Filtros de alertas
-
-Filtrar por estado:
-
-```bash
-curl -s "http://127.0.0.1:8000/alerts/ui?status=ack" | python3 -m json.tool
-```
-
-Filtrar por severidad mínima:
-
-```bash
-curl -s "http://127.0.0.1:8000/alerts/ui?severity_min=7" | python3 -m json.tool
-```
-
-Buscar por texto:
-
-```bash
-curl -s "http://127.0.0.1:8000/alerts/ui?q=failed" | python3 -m json.tool
-```
-
-Limitar resultados:
-
-```bash
-curl -s "http://127.0.0.1:8000/alerts/ui?limit=5" | python3 -m json.tool
-```
-
----
-
-## 16. Actualización de estado de una alerta
-
-El sistema permite cambiar el estado de una alerta mediante:
-
-```http
-PATCH /alerts/{alert_id}
-```
-
-Ejemplo:
-
-```bash
-curl -X PATCH http://127.0.0.1:8000/alerts/6 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "status": "ack"
-  }'
-```
-
-Estados contemplados:
-
-```text
-open
-ack
-closed
-```
-
-Esto permite simular una gestión básica del ciclo de vida de una alerta.
-
----
-
-## 17. Frontend
 
 El frontend se encuentra en la carpeta:
 
@@ -683,133 +348,198 @@ El frontend se encuentra en la carpeta:
 frontend/
 ```
 
-Para servirlo en local:
+Puede abrirse desde el navegador usando los archivos HTML incluidos en el proyecto.
+
+---
+
+## Comandos útiles
+
+Ver logs de la API:
 
 ```bash
-cd ~/siem-lab
-python3 -m http.server 5173 -d frontend
+docker logs siem-api
 ```
 
-Después abrir en el navegador:
-
-```text
-http://127.0.0.1:5173/index.html
-```
-
-La interfaz permite:
-
-- Consultar alertas.
-- Aplicar filtros.
-- Navegar por resultados.
-- Ver el estado de cada alerta.
-- Acceder al detalle de una alerta.
-
----
-
-## 18. Adminer
-
-Adminer permite consultar visualmente la base de datos PostgreSQL.
-
-URL:
-
-```text
-http://127.0.0.1:8080
-```
-
-Tablas principales:
-
-```text
-alembic_version
-alerts
-events
-rules
-```
-
-Estas tablas permiten comprobar que los eventos, reglas y alertas quedan persistidos en la base de datos.
-
----
-
-## 19. Pruebas automatizadas
-
-El proyecto incluye pruebas automatizadas con `pytest`.
-
-Para ejecutarlas dentro del contenedor de la API:
+Ver logs de PostgreSQL:
 
 ```bash
-cd docker
-docker compose exec api python -m pytest
+docker logs siem-db
 ```
 
-Resultado validado:
+Ver logs de Adminer:
+
+```bash
+docker logs siem-adminer
+```
+
+Entrar en el contenedor de la API:
+
+```bash
+docker exec -it siem-api bash
+```
+
+Entrar en PostgreSQL:
+
+```bash
+docker exec -it siem-db psql -U siem -d siem
+```
+
+Apagar el laboratorio:
+
+```bash
+docker compose --env-file docker/.env -f docker/compose.yml down
+```
+
+Apagar el laboratorio eliminando también volúmenes:
+
+```bash
+docker compose --env-file docker/.env -f docker/compose.yml down -v
+```
+
+---
+
+## Migraciones de base de datos
+
+El proyecto utiliza Alembic para gestionar la evolución de la base de datos.
+
+Las migraciones se encuentran en:
 
 ```text
-4 passed
+backend/alembic/versions/
 ```
 
-Las pruebas verifican el funcionamiento de endpoints principales como `/health` y la consulta de alertas orientada a la interfaz.
+Ejecutar migraciones desde el contenedor de la API:
+
+```bash
+docker exec -it siem-api alembic upgrade head
+```
+
+Consultar el estado actual de Alembic:
+
+```bash
+docker exec -it siem-api alembic current
+```
 
 ---
 
-## 20. Validación funcional realizada
+## Tests
 
-Durante la validación del proyecto se comprobó:
+El proyecto incluye pruebas automatizadas en:
 
 ```text
-[OK] La VM arranca correctamente en VirtualBox.
-[OK] Docker Compose levanta los servicios principales.
-[OK] PostgreSQL funciona correctamente.
-[OK] Adminer permite visualizar la base de datos.
-[OK] FastAPI responde en /docs.
-[OK] /health responde correctamente.
-[OK] /metrics devuelve métricas del sistema.
-[OK] /rules lista reglas existentes.
-[OK] /ingest permite enviar eventos/logs simulados.
-[OK] El motor de reglas genera alertas automáticamente.
-[OK] /alerts/ui muestra alertas enriquecidas.
-[OK] PATCH /alerts/{id} permite cambiar el estado de una alerta.
-[OK] Los filtros por estado, severidad y texto funcionan.
-[OK] El frontend carga correctamente y muestra las alertas.
-[OK] Los tests automatizados se ejecutan correctamente.
+backend/tests/
+```
+
+Ejecutar tests desde la carpeta backend:
+
+```bash
+cd backend
+pytest
+```
+
+Ejecutar tests dentro del contenedor:
+
+```bash
+docker exec -it siem-api pytest
+```
+
+Los tests permiten validar partes básicas del backend, como la disponibilidad del servicio y el comportamiento de determinadas rutas.
+
+---
+
+## Endpoints principales
+
+Algunos de los endpoints principales del sistema son:
+
+```text
+GET  /health
+GET  /info
+POST /ingest
+GET  /events
+GET  /rules
+POST /rules
+GET  /alerts
+GET  /metrics
+```
+
+La documentación interactiva puede consultarse desde:
+
+```text
+http://localhost:8000/docs
 ```
 
 ---
 
-## 21. Limitaciones
+## Flujo general de datos
 
-Este proyecto es un MVP educativo. Sus principales limitaciones son:
+El flujo principal del laboratorio es el siguiente:
 
-- No captura logs reales de sistemas externos.
-- No incluye agentes de recolección.
-- No implementa autenticación de usuarios.
-- No incluye roles ni permisos.
-- No realiza correlación avanzada como un SIEM empresarial.
-- No incluye dashboards avanzados con gráficas.
-- No implementa despliegue en producción.
-- No sustituye herramientas como Wazuh, Splunk, Elastic SIEM o Microsoft Sentinel.
-
----
-
-## 22. Futuras mejoras
-
-Posibles ampliaciones del proyecto:
-
-- Integración con logs reales de Linux, Windows o servidores web.
-- Integración con agentes como Wazuh.
-- Incorporación de Suricata o Zeek para eventos de red.
-- Dashboard con gráficas.
-- Sistema de usuarios y autenticación.
-- Gestión de roles y permisos.
-- Reglas más avanzadas.
-- Correlación entre múltiples eventos.
-- Exportación de informes.
-- Contenerización completa del frontend.
-- Despliegue en un servidor dedicado o entorno cloud.
-- Integración con herramientas de notificación como correo, Telegram o Slack.
+```text
+1. Un evento de seguridad entra por la API de ingesta.
+2. FastAPI recibe la petición HTTP.
+3. Pydantic valida la estructura de los datos.
+4. SQLAlchemy guarda el evento en PostgreSQL.
+5. El sistema consulta las reglas configuradas.
+6. El motor de reglas evalúa si el evento cumple alguna condición.
+7. Si se cumple una regla, se genera una alerta.
+8. La alerta queda almacenada en PostgreSQL.
+9. El usuario puede consultar eventos, reglas, alertas y métricas desde la API o el frontend.
+```
 
 ---
 
-## 23. Conclusión
+## Notas sobre la entrega
 
-SIEM Lab demuestra el funcionamiento básico de un sistema de monitorización de seguridad: recepción de eventos, almacenamiento, evaluación mediante reglas, generación automática de alertas y consulta posterior.
+El archivo ZIP de entrega incluye el código fuente del proyecto, la configuración Docker, el frontend, el backend, las migraciones de base de datos, los tests y la documentación principal del repositorio.
 
-Aunque se trata de un MVP académico, el proyecto permite comprender de forma práctica conceptos fundamentales del Blue Team y sirve como base para futuras ampliaciones hacia un laboratorio de ciberseguridad más completo.
+Por motivos de seguridad y limpieza, se han excluido del ZIP los archivos y carpetas generados localmente o asociados al entorno de desarrollo:
+
+```text
+.env
+docker/.env
+.git/
+venv/
+.venv/
+backend/venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+```
+
+Los archivos `.env` y `docker/.env` contienen configuración local del entorno, por lo que no se entregan. En su lugar, se incluye `.env.example`, que sirve como plantilla para crear las variables necesarias.
+
+La carpeta `.git/` no se incluye en el ZIP porque pertenece al historial interno del repositorio. Si se requiere consultar el historial de desarrollo, puede utilizarse el repositorio de GitHub asociado al proyecto.
+
+Las carpetas `venv/`, `.venv/`, `backend/venv/`, `__pycache__/`, `.pytest_cache/` y los archivos `*.pyc` son elementos generados localmente por Python, pytest o el entorno de desarrollo, y pueden reconstruirse automáticamente.
+
+---
+
+## Estado del proyecto
+
+El proyecto se encuentra en estado MVP funcional. Permite levantar el entorno mediante Docker Compose, exponer una API backend, almacenar información en PostgreSQL, gestionar eventos, reglas y alertas, y consultar información desde frontend o herramientas auxiliares.
+
+---
+
+## Posibles mejoras futuras
+
+Algunas líneas de mejora futuras serían:
+
+* Añadir autenticación de usuarios.
+* Incorporar roles y permisos.
+* Mejorar la interfaz frontend.
+* Añadir gráficos y dashboards.
+* Incorporar más tipos de reglas de correlación.
+* Permitir importación de logs desde fuentes externas.
+* Añadir integración con herramientas de monitorización.
+* Mejorar la cobertura de tests.
+* Preparar perfiles diferenciados para desarrollo y producción.
+* Añadir despliegue automatizado más completo.
+
+---
+
+## Autor
+
+Proyecto desarrollado como parte del ciclo formativo de Desarrollo de Aplicaciones Multiplataforma.
+
+```
+
